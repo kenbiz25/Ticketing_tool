@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Saved Views{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="fas fa-bookmark text-primary me-2"></i>Saved Views</h4>
+  <a href="{{ url_for('dashboard.main') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>Back
+  </a>
+</div>
+
+<!-- Create new view -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-header bg-white border-bottom fw-semibold py-2 px-4">
+    <i class="fas fa-plus me-1"></i>Save Current Filter as View
+  </div>
+  <div class="card-body p-4">
+    <form method="POST" action="{{ url_for('admin_tools.create_saved_view') }}" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">View Name</label>
+        <input type="text" name="name" class="form-control form-control-sm" placeholder="e.g. My Open Criticals" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Status</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="">All</option>
+          {% for s in ['Open','In Progress','Pending','Resolved','Closed','Reopened'] %}
+          <option value="{{ s }}">{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Priority</label>
+        <select name="priority" class="form-select form-select-sm">
+          <option value="">All</option>
+          {% for p in ['Low','Medium','High','Critical','Urgent'] %}
+          <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">SLA</label>
+        <select name="sla" class="form-select form-select-sm">
+          <option value="">All</option>
+          <option value="breached">Breached</option>
+          <option value="warning">Warning</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <label class="form-label small fw-semibold">Assigned</label>
+        <select name="assigned" class="form-select form-select-sm">
+          <option value="">All</option>
+          <option value="mine">Mine</option>
+          <option value="unassigned">Unassigned</option>
+        </select>
+      </div>
+      <div class="col-md-1">
+        <div class="form-check mt-4">
+          <input class="form-check-input" type="checkbox" name="is_shared" id="shareView">
+          <label class="form-check-label small" for="shareView">Shared</label>
+        </div>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary btn-sm w-100">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- My views -->
+<div class="card border-0 shadow-sm rounded-3 mb-4">
+  <div class="card-header bg-white border-bottom fw-semibold py-2 px-4">
+    <i class="fas fa-user me-1"></i>My Views
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr>
+        <th class="ps-4">Name</th><th>Filters</th><th>Shared</th><th class="text-end pe-4">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for v in mine %}
+        <tr>
+          <td class="ps-4 fw-semibold">{{ v.name }}</td>
+          <td>
+            {% for k, val in v.filters_json.items() %}
+            <span class="badge bg-secondary me-1">{{ k }}: {{ val }}</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if v.is_shared %}<span class="badge bg-success">Shared</span>
+            {% else %}<span class="text-muted small">Private</span>{% endif %}
+          </td>
+          <td class="text-end pe-4">
+            <a href="{{ url_for('dashboard.main') }}?{{ v.filters_json.items() | map('join', '=') | join('&') }}"
+               class="btn btn-outline-primary btn-sm me-1">
+              <i class="fas fa-eye me-1"></i>Apply
+            </a>
+            <form method="POST" action="{{ url_for('admin_tools.delete_saved_view', view_id=v.id) }}"
+                  class="d-inline" onsubmit="return confirm('Delete view?')">
+              <button class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center py-4 text-muted">No saved views yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if shared %}
+<!-- Shared views -->
+<div class="card border-0 shadow-sm rounded-3">
+  <div class="card-header bg-white border-bottom fw-semibold py-2 px-4">
+    <i class="fas fa-users me-1"></i>Shared Views
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr>
+        <th class="ps-4">Name</th><th>Owner</th><th>Filters</th><th class="text-end pe-4">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for v in shared %}
+        <tr>
+          <td class="ps-4 fw-semibold">{{ v.name }}</td>
+          <td class="small text-muted">{{ v.owner.full_name }}</td>
+          <td>
+            {% for k, val in v.filters_json.items() %}
+            <span class="badge bg-secondary me-1">{{ k }}: {{ val }}</span>
+            {% endfor %}
+          </td>
+          <td class="text-end pe-4">
+            <a href="{{ url_for('dashboard.main') }}?{{ v.filters_json.items() | map('join', '=') | join('&') }}"
+               class="btn btn-outline-primary btn-sm">
+              <i class="fas fa-eye me-1"></i>Apply
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

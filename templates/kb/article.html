@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} — Help Center{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-lg-8">
+      <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ url_for('kb.kb_index') }}">Help Center</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('kb.kb_category', slug=article.category.slug) }}">{{ article.category.name }}</a></li>
+          <li class="breadcrumb-item active">{{ article.title }}</li>
+        </ol>
+      </nav>
+
+      <article class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h1 class="h3 mb-1">{{ article.title }}</h1>
+          <div class="text-muted small mb-4">
+            <i class="fas fa-user me-1"></i>{{ article.author.full_name }}
+            &bull;
+            <i class="fas fa-calendar me-1"></i>{{ article.updated_at.strftime('%b %d, %Y') }}
+            &bull;
+            <i class="fas fa-eye me-1"></i>{{ article.view_count }} views
+          </div>
+          <div class="kb-article-body">
+            {{ article.body_html | safe }}
+          </div>
+        </div>
+      </article>
+
+      <!-- Feedback -->
+      <div class="card shadow-sm mb-4" id="feedback-card">
+        <div class="card-body text-center py-4">
+          {% if user_voted %}
+          <p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>Thanks for your feedback!</p>
+          {% else %}
+          <h6 class="mb-3">Was this article helpful?</h6>
+          <button class="btn btn-outline-success me-2 feedback-btn" data-helpful="true">
+            <i class="fas fa-thumbs-up me-1"></i>Yes, helpful
+            {% if article.helpful_yes %}<span class="badge bg-success ms-1">{{ article.helpful_yes }}</span>{% endif %}
+          </button>
+          <button class="btn btn-outline-danger feedback-btn" data-helpful="false">
+            <i class="fas fa-thumbs-down me-1"></i>Not helpful
+            {% if article.helpful_no %}<span class="badge bg-danger ms-1">{{ article.helpful_no }}</span>{% endif %}
+          </button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      {% if related %}
+      <div class="card shadow-sm">
+        <div class="card-header fw-semibold">Related Articles</div>
+        <div class="list-group list-group-flush">
+          {% for art in related %}
+          <a href="{{ url_for('kb.kb_article', slug=art.slug) }}" class="list-group-item list-group-item-action small">
+            <i class="fas fa-file-alt me-2 text-muted"></i>{{ art.title }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      <div class="mt-3">
+        <a href="{{ url_for('kb.kb_category', slug=article.category.slug) }}" class="btn btn-outline-secondary btn-sm">
+          <i class="fas fa-arrow-left me-1"></i>Back to {{ article.category.name }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.feedback-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const helpful = this.dataset.helpful === 'true';
+    fetch('{{ url_for("kb.kb_feedback", article_id=article.id) }}', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({helpful})
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('feedback-card').innerHTML =
+          '<div class="card-body text-center py-4"><p class="text-muted mb-0"><i class="fas fa-check-circle text-success me-2"></i>Thanks for your feedback!</p></div>';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

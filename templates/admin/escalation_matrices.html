@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Country Escalation Matrices{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="fas fa-sitemap text-primary me-2"></i>Country Escalation Matrices</h4>
+    <p class="text-muted small mb-0">Country-specific support escalation flows and level ownership</p>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for country in countries %}
+  {% set matrix = matrices.get(country.id) %}
+  <div class="col-md-6 col-xl-4">
+    <a href="{{ url_for('admin_tools.escalation_matrix_detail', country_id=country.id) }}"
+       class="text-decoration-none">
+      <div class="card border-0 shadow-sm h-100 hover-lift">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+              <i class="fas fa-globe text-primary fa-lg"></i>
+            </div>
+            <div>
+              <div class="fw-bold">{{ country.name }}</div>
+              <div class="text-muted small">{{ country.admin1_label }} · {{ country.admin2_label }}</div>
+            </div>
+          </div>
+          {% if matrix and (matrix.levels_json or matrix.streams_json) %}
+            {% set stream_count = (matrix.streams_json | length) if matrix.streams_json else 0 %}
+            <span class="badge bg-success">
+              <i class="fas fa-check-circle me-1"></i>Matrix configured
+            </span>
+            {% if stream_count > 0 %}
+            <span class="badge bg-secondary ms-1">{{ stream_count }} stream{{ 's' if stream_count != 1 }}</span>
+            {% endif %}
+          {% else %}
+            <span class="badge bg-light text-muted border">Not configured</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<style>.hover-lift { transition:transform .15s; } .hover-lift:hover { transform:translateY(-3px); }</style>
+{% endblock %}

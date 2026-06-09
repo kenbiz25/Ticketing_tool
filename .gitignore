@@ -1,0 +1,49 @@
+# Claude Code settings (local permissions — never commit)
+.claude/
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+
+# Flask instance folder (contains SQLite database)
+instance/
+*.db
+*.sqlite3
+
+# Uploaded files
+static/screenshots/
+static/uploads/
+
+# Seed / demo data scripts (not for production)
+seed_demo.py
+seed_kenya_locations.py
+seed_escalation_matrices.py
+run_seed.py
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/

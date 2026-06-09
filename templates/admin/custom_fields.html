@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Custom Fields{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="fas fa-sliders-h text-primary me-2"></i>Custom Fields</h4>
+  <a href="{{ url_for('dashboard.main') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>Back
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Create form -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white border-bottom fw-semibold py-2 px-4">
+        <i class="fas fa-plus me-1"></i>Add Custom Field
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('admin_tools.create_custom_field') }}">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Internal Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control form-control-sm"
+                   placeholder="e.g. customer_ref" required>
+            <small class="text-muted">Lowercase, no spaces. Used as field key.</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Display Label <span class="text-danger">*</span></label>
+            <input type="text" name="label" class="form-control form-control-sm"
+                   placeholder="e.g. Customer Reference" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Field Type</label>
+            <select name="field_type" class="form-select form-select-sm" id="fieldTypeSelect"
+                    onchange="toggleOptions(this.value)">
+              <option value="text">Text (single line)</option>
+              <option value="textarea">Textarea (multi-line)</option>
+              <option value="dropdown">Dropdown</option>
+              <option value="checkbox">Checkbox (yes/no)</option>
+              <option value="date">Date</option>
+              <option value="number">Number</option>
+            </select>
+          </div>
+          <div class="mb-3 d-none" id="optionsBlock">
+            <label class="form-label small fw-semibold">Options (one per line)</label>
+            <textarea name="options" class="form-control form-control-sm" rows="4"
+                      placeholder="Option A&#10;Option B&#10;Option C"></textarea>
+          </div>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="is_required" id="reqCheck">
+            <label class="form-check-label small" for="reqCheck">Required field</label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">
+            <i class="fas fa-plus me-1"></i>Create Field
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing fields -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white border-bottom fw-semibold py-2 px-4">
+        Custom Fields <span class="badge bg-secondary ms-1">{{ fields|length }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Label</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Required</th>
+              <th>Status</th>
+              <th class="text-end pe-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for f in fields %}
+            <tr class="{{ 'table-light text-muted' if not f.is_active else '' }}">
+              <td class="ps-4 fw-semibold">{{ f.label }}</td>
+              <td><code class="small">{{ f.name }}</code></td>
+              <td>
+                <span class="badge bg-info text-dark">{{ f.field_type }}</span>
+                {% if f.field_type == 'dropdown' and f.options %}
+                  <span class="text-muted small">({{ f.options|length }} options)</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if f.is_required %}
+                <span class="badge bg-danger">Required</span>
+                {% else %}
+                <span class="text-muted small">Optional</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if f.is_active %}
+                <span class="badge bg-success">Active</span>
+                {% else %}
+                <span class="badge bg-secondary">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <form method="POST" action="{{ url_for('admin_tools.toggle_custom_field', field_id=f.id) }}"
+                      class="d-inline">
+                  <button class="btn btn-outline-{{ 'warning' if f.is_active else 'success' }} btn-sm me-1"
+                          title="{{ 'Disable' if f.is_active else 'Enable' }}">
+                    <i class="fas fa-{{ 'pause' if f.is_active else 'play' }}"></i>
+                  </button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_tools.delete_custom_field', field_id=f.id) }}"
+                      class="d-inline" onsubmit="return confirm('Delete field and all its values?')">
+                  <button class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-5 text-muted">
+                <i class="fas fa-sliders-h fa-2x mb-2 d-block opacity-25"></i>
+                No custom fields defined yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleOptions(val) {
+  document.getElementById('optionsBlock').classList.toggle('d-none', val !== 'dropdown');
+}
+</script>
+{% endblock %}

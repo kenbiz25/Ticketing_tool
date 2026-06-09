@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Issue Taxonomy{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="fas fa-sitemap text-primary me-2"></i>Issue Taxonomy</h4>
+    <p class="text-muted small mb-0">Group issues into categories for analytics and routing</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Create Category -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-header bg-white py-2 px-4 fw-semibold border-bottom">
+        <i class="fas fa-folder-plus text-success me-2"></i>New Category
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('admin_tools.create_category') }}">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Category Name</label>
+            <input type="text" name="name" class="form-control" required placeholder="e.g. Application Issues">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Icon (Font Awesome name)</label>
+            <input type="text" name="icon" class="form-control" value="tag" placeholder="bug, database, server...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Color</label>
+            <select name="color" class="form-select">
+              <option value="primary">Blue</option>
+              <option value="danger">Red</option>
+              <option value="warning">Yellow</option>
+              <option value="success">Green</option>
+              <option value="info">Cyan</option>
+              <option value="secondary">Grey</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-success w-100">
+            <i class="fas fa-plus me-1"></i>Create Category
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Create Sub-category -->
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-2 px-4 fw-semibold border-bottom">
+        <i class="fas fa-tag text-info me-2"></i>New Sub-category
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('admin_tools.create_subcategory') }}">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Category</label>
+            <select name="category_id" class="form-select" required>
+              <option value="">-- Select Category --</option>
+              {% for cat in categories %}
+              <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Sub-category Name</label>
+            <input type="text" name="name" class="form-control" required placeholder="e.g. Login / Access">
+          </div>
+          <button type="submit" class="btn btn-info w-100">
+            <i class="fas fa-plus me-1"></i>Add Sub-category
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Taxonomy Tree -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-2 px-4 fw-semibold border-bottom">
+        <i class="fas fa-list text-secondary me-2"></i>Taxonomy
+        <span class="badge bg-secondary ms-2">{{ categories|length }} categories</span>
+      </div>
+      <div class="card-body p-0">
+        {% if categories %}
+        <div class="accordion accordion-flush" id="taxAcc">
+          {% for cat in categories %}
+          <div class="accordion-item border-bottom">
+            <h2 class="accordion-header">
+              <button class="accordion-button {% if not loop.first %}collapsed{% endif %} py-3 px-4"
+                      type="button" data-bs-toggle="collapse"
+                      data-bs-target="#cat{{ cat.id }}">
+                <span class="badge bg-{{ cat.color }} me-2">
+                  <i class="fas fa-{{ cat.icon }}"></i>
+                </span>
+                <strong>{{ cat.name }}</strong>
+                <span class="badge bg-secondary ms-2 me-auto">{{ cat.subcategories|length }} sub-categories</span>
+              </button>
+            </h2>
+            <div id="cat{{ cat.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}">
+              <div class="accordion-body pt-0 pb-2 px-4">
+                {% for sub in cat.subcategories %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                  <span class="small"><i class="fas fa-angle-right text-muted me-2"></i>{{ sub.name }}</span>
+                  <form method="POST" action="{{ url_for('admin_tools.delete_subcategory', sub_id=sub.id) }}"
+                        onsubmit="return confirm('Delete sub-category?');">
+                    <button type="submit" class="btn btn-outline-danger btn-sm" style="padding:2px 8px;">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </form>
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0 py-2">No sub-categories yet.</p>
+                {% endfor %}
+                <form method="POST" action="{{ url_for('admin_tools.delete_category', cat_id=cat.id) }}"
+                      onsubmit="return confirm('Delete entire category and all its sub-categories?');"
+                      class="mt-2">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash me-1"></i>Delete Category
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="fas fa-sitemap fa-3x mb-3 d-block opacity-25"></i>
+          <p>No categories yet. Create your first category.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Manage Tags{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 class="fw-bold mb-0"><i class="fas fa-tags text-primary me-2"></i>Manage Tags</h4>
+    <p class="text-muted small mb-0">Organize tickets with color-coded labels</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-2 px-4 fw-semibold border-bottom">
+        <i class="fas fa-plus-circle text-success me-2"></i>Create Tag
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('admin_tools.create_tag') }}">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Tag Name</label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. billing, urgent" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Color</label>
+            <select name="color" class="form-select">
+              <option value="primary">Blue (Primary)</option>
+              <option value="success">Green (Success)</option>
+              <option value="danger">Red (Danger)</option>
+              <option value="warning">Yellow (Warning)</option>
+              <option value="info">Cyan (Info)</option>
+              <option value="secondary">Grey (Secondary)</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-plus me-1"></i>Create Tag
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-header bg-white py-2 px-4 fw-semibold border-bottom">
+        <i class="fas fa-list text-secondary me-2"></i>Existing Tags
+        <span class="badge bg-secondary ms-2">{{ tags|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if tags %}
+        <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-4">Tag</th>
+              <th class="text-center">Tickets</th>
+              <th class="pe-4 text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tag in tags %}
+            <tr>
+              <td class="ps-4">
+                <span class="badge bg-{{ tag.color }} px-3 py-1" style="font-size:.85rem;">
+                  <i class="fas fa-tag me-1"></i>{{ tag.name }}
+                </span>
+              </td>
+              <td class="text-center small text-muted">{{ tag.tickets|length }}</td>
+              <td class="pe-4 text-end">
+                <form method="POST" action="{{ url_for('admin_tools.delete_tag', tag_id=tag.id) }}"
+                      onsubmit="return confirm('Delete tag \'{{ tag.name }}\'?');">
+                  <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="fas fa-tags fa-3x mb-3 d-block opacity-25"></i>
+          <p>No tags yet. Create your first tag.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
