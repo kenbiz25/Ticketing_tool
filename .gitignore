@@ -1,49 +1,96 @@
-# Claude Code settings (local permissions — never commit)
+# ── Claude Code ────────────────────────────────────────────────────────────────
+# Local permissions config — machine-specific, never commit
 .claude/
 
-# Environment secrets
+# ── Environment & Secrets ───────────────────────────────────────────────────────
 .env
 .env.local
 .env.*.local
 
-# Python cache
+# Common secret file patterns
+secrets.json
+secret.json
+.secrets
+.secret
+credentials.json
+service-account*.json
+token.json
+
+# SSL / TLS private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.keystore
+*.jks
+*.crt
+*.cer
+*.csr
+
+# ── Python ─────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
 .Python
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Flask instance folder (contains SQLite database)
+# ── Flask / App Runtime ─────────────────────────────────────────────────────────
+# Flask instance folder — contains SQLite database and instance-specific config
 instance/
+
+# Any SQLite / database files checked in by mistake
 *.db
+*.sqlite
 *.sqlite3
 
-# Uploaded files
+# ── Uploaded User Files ─────────────────────────────────────────────────────────
 static/screenshots/
 static/uploads/
 
-# Seed / demo data scripts (not for production)
+# ── Database Dumps ──────────────────────────────────────────────────────────────
+*.sql
+*.dump
+*.bak
+*.backup
+backup/
+backups/
+
+# ── Seed / Demo Data ───────────────────────────────────────────────────────────
+# These scripts contain organisation-specific data and are not needed in prod
 seed_demo.py
 seed_kenya_locations.py
 seed_escalation_matrices.py
 run_seed.py
 
-# Virtual environments
+# ── Celery ─────────────────────────────────────────────────────────────────────
+celerybeat-schedule*
+celerybeat.pid
+
+# ── Virtual Environments ───────────────────────────────────────────────────────
 venv/
 .venv/
 env/
 .env/
 
-# IDE / OS
+# ── IDE / OS ────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.DS_Store
 Thumbs.db
+desktop.ini
 
-# Logs
+# ── Logs & Runtime Files ───────────────────────────────────────────────────────
 *.log
 logs/
+*.pid
+*.sock
 
-# Distribution / packaging
+# ── Distribution / Packaging ───────────────────────────────────────────────────
 dist/
 build/
 *.egg-info/

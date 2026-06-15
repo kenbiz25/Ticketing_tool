@@ -107,6 +107,7 @@ A multi-channel, intelligent support platform built for Medtronic LABS field ope
 | Backend | Flask 3.0 |
 | ORM | Flask-SQLAlchemy + SQLite (dev) / PostgreSQL (prod) |
 | Auth | Flask-Login + Werkzeug password hashing |
+| Rate limiting | Flask-Limiter 3.x (per-IP; login + password-reset endpoints) |
 | Frontend | Jinja2 + Bootstrap 5.3 + Chart.js 4.4 + Font Awesome 6.4 |
 | File uploads | Werkzeug + Pillow |
 | Email | SMTP (smtplib) |
@@ -170,7 +171,7 @@ The app starts at **http://localhost:5000**.
 
 On first run it automatically seeds:
 
-- A default Super Admin account (`superadmin` / `Admin@123` — **change immediately**)
+- A default Super Admin account — username `superadmin`, password printed to stdout on first boot (set `SUPERADMIN_PASSWORD` in `.env` to control it; **change after first login**)
 - Built-in SLA policies for all seven priority tiers (P1–P5, OTP, OUTAGE)
 - Country and administrative location data for all 8 countries
 - Issue taxonomy (6 categories, 23+ subcategories)
@@ -201,9 +202,10 @@ Copy `.env.example` to `.env`. Variables marked **required** must be set for tha
 ### Core
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| -------- | ------- | ----------- |
 | `SECRET_KEY` | *(insecure default)* | **Required** — Flask session signing key. Set to a long random string in production. |
 | `DATABASE_URL` | `sqlite:///database.db` | SQLAlchemy connection URI. Use `postgresql://user:pass@host/db` for PostgreSQL. |
+| `SUPERADMIN_PASSWORD` | *(random, printed on boot)* | Initial password for the `superadmin` account. Set before first run; otherwise a secure random password is generated and printed once to stdout. |
 
 ### Email / SMTP
 
@@ -221,7 +223,7 @@ Copy `.env.example` to `.env`. Variables marked **required** must be set for tha
 |----------|---------|-------------|
 | `WHATSAPP_TOKEN` | — | Meta Cloud API permanent / system user token |
 | `WHATSAPP_PHONE_ID` | — | Phone Number ID from Meta Business dashboard |
-| `WHATSAPP_VERIFY_TOKEN` | `medtronic_verify` | Verification token entered when registering the webhook on Meta |
+| `WHATSAPP_VERIFY_TOKEN` | — | **Required** — Verification token you enter when registering the webhook on Meta. Set to any secret string. |
 
 Register your webhook URL on Meta: `https://your-domain.com/webhooks/whatsapp`
 
@@ -352,11 +354,11 @@ User_Support/
 ## Default Credentials
 
 | Username | Password | Role |
-|----------|----------|------|
-| `superadmin` | `Admin@123` | Super Admin |
+| -------- | -------- | ---- |
+| `superadmin` | Printed to stdout on first boot | Super Admin |
 
-> **Change the password immediately after first login.**  
-> Go to your username dropdown → **Preferences**, or navigate to `/account/preferences`.
+> Set `SUPERADMIN_PASSWORD` in `.env` before the first run to choose the password, or read the generated one from the startup log.  
+> **Change it immediately after first login** — go to your username dropdown → **Preferences**, or navigate to `/account/preferences`.
 
 ---
 
@@ -419,7 +421,7 @@ View at **Admin → Escalation Matrices** (`/admin/escalation-matrices`).
    ```
    WHATSAPP_TOKEN=your_permanent_token
    WHATSAPP_PHONE_ID=your_phone_number_id
-   WHATSAPP_VERIFY_TOKEN=medtronic_verify
+   WHATSAPP_VERIFY_TOKEN=your_custom_verify_token
    ```
 5. Register the webhook URL on Meta: `https://your-domain.com/webhooks/whatsapp`
    - Verify token: the value of `WHATSAPP_VERIFY_TOKEN`
